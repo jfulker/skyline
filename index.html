@@ -89,7 +89,12 @@
 
     .ar-pin:active { transform: translate(-50%, -100%) scale(0.95); }
 
+    .ar-pin-label {
+      pointer-events: all;
+    }
+
     .ar-pin-dot {
+      pointer-events: all;
       width: 10px;
       height: 10px;
       background: var(--color-accent);
@@ -123,14 +128,15 @@
     }
 
     .ar-pin-name {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       letter-spacing: 0.02em;
       color: var(--color-text-primary);
     }
 
     .ar-pin-height {
-      font-size: 10px;
+      font-size: 12px;
+      font-weight: 700;
       color: var(--color-accent);
       margin-top: 1px;
     }
@@ -156,7 +162,7 @@
     }
 
     .app-logo {
-      font-size: 17px;
+      font-size: 26px;
       font-weight: 700;
       letter-spacing: -0.5px;
       color: var(--color-text-primary);
@@ -169,20 +175,21 @@
     .location-badge {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       background: var(--color-surface-light);
       border: 1px solid var(--color-border);
       border-radius: 20px;
-      padding: 4px 10px;
-      font-size: 11px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--color-text-secondary);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
 
     .location-dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       background: #4eff91;
       border-radius: 50%;
       animation: locBlink 2s infinite;
@@ -280,51 +287,7 @@
       margin-top: 3px;
     }
 
-    /* ── Distance indicator bar ── */
-    #distance-bar {
-      position: fixed;
-      top: 68px;
-      left: 20px;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .dist-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-    }
-
-    .dist-range {
-      display: flex;
-      gap: 4px;
-    }
-
-    .dist-chip {
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      border: 1px solid var(--color-border);
-      background: var(--color-surface-light);
-      color: var(--color-text-secondary);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-
-    .dist-chip.active {
-      background: var(--color-accent-dim);
-      border-color: var(--color-accent);
-      color: var(--color-accent);
-    }
-
-    /* ── Detail card (bottom sheet) ── */
+/* ── Detail card (bottom sheet) ── */
     #detail-card {
       position: fixed;
       bottom: 0;
@@ -369,6 +332,20 @@
       font-size: 13px;
       color: var(--color-text-secondary);
       margin-top: 3px;
+    }
+
+    .card-architect {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    .card-architect span {
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 5px;
     }
 
     .card-close {
@@ -473,44 +450,7 @@
 
     .btn-secondary:active { background: var(--color-accent-dim); }
 
-    /* ── Bottom nav ── */
-    #bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 15;
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      padding: 10px 0 28px;
-      background: linear-gradient(to top, rgba(10,10,20,0.92) 0%, transparent 100%);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      padding: 6px 18px;
-      border-radius: var(--radius-sm);
-      transition: background 0.15s;
-    }
-
-    .nav-item.active .nav-label { color: var(--color-accent); }
-    .nav-item.active svg path, .nav-item.active svg circle, .nav-item.active svg rect {
-      stroke: var(--color-accent);
-    }
-
-    .nav-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: var(--color-text-muted);
-    }
-
-    /* ── Scan animation ring ── */
+/* ── Scan animation ring ── */
     #scan-ring {
       position: fixed;
       left: 50%;
@@ -553,16 +493,16 @@
     }
 
     .heading-tick {
-      font-size: 10px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       letter-spacing: 0.1em;
-      color: var(--color-text-muted);
+      color: var(--color-text-secondary);
       padding: 0 8px;
     }
 
     .heading-tick.major {
-      color: var(--color-text-secondary);
-      font-size: 11px;
+      color: #fff;
+      font-size: 13px;
     }
 
     .heading-center-mark {
@@ -579,22 +519,46 @@
     .heading-wrapper {
       position: relative;
       overflow: hidden;
-      padding: 4px 0;
+      padding: 8px 0;
+      width: 25vw;
       background: rgba(10,10,20,0.5);
-      border-radius: 20px;
+      border-radius: 999px;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 1px solid var(--color-border);
+      mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
     }
 
     .heading-track {
       display: flex;
-      animation: headingScroll 20s linear infinite;
+      animation: headingJiggle 9s ease-in-out infinite;
     }
 
-    @keyframes headingScroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+    @keyframes headingJiggle {
+      0%, 100% { transform: translateX(calc(var(--jiggle-center, 0px) + 12px)); }
+      50%       { transform: translateX(calc(var(--jiggle-center, 0px) - 12px)); }
+    }
+
+    /* ── Shutter button ── */
+    #shutter-btn {
+      position: fixed;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 6px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+
+    #shutter-btn:active {
+      transform: translateX(-50%) scale(0.93);
+      border-color: rgba(255, 255, 255, 0.6);
     }
 
     /* ── Tooltip notification ── */
@@ -647,56 +611,26 @@
   <svg id="ar-lines" style="position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible;"></svg>
   <div id="ar-layer"></div>
 
-  <!-- Coordinate HUD -->
-  <div id="coord-hud" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:100;background:rgba(0,0,0,0.75);color:#5b8fff;font:700 13px/1 monospace;padding:7px 14px;border-radius:8px;border:1px solid rgba(91,143,255,0.4);pointer-events:none;white-space:nowrap;">x: — &nbsp; y: —</div>
-  <button id="coord-toggle" onclick="toggleCoords()" style="position:fixed;bottom:90px;right:16px;z-index:100;background:rgba(0,0,0,0.6);color:rgba(91,143,255,0.8);border:1px solid rgba(91,143,255,0.35);border-radius:8px;padding:6px 10px;font:600 11px monospace;cursor:pointer;letter-spacing:0.05em;">XY</button>
 
-  <!-- Toast -->
+<!-- Toast -->
   <div id="ar-toast">Tap a pin to explore</div>
 
   <!-- Status bar -->
   <header id="status-bar">
     <div class="status-left">
       <div class="app-logo">Sky<span>line</span></div>
+    </div>
+    <div class="status-right">
       <div class="location-badge">
         <div class="location-dot"></div>
         Chicago, IL
       </div>
     </div>
-    <div class="status-right">
-      <div class="icon-btn" onclick="toggleCamera()" title="Camera">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
-        </svg>
-      </div>
-      <div class="icon-btn" title="Layers">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-          <polyline points="2 17 12 22 22 17"/>
-          <polyline points="2 12 12 17 22 12"/>
-        </svg>
-      </div>
-    </div>
   </header>
 
-  <!-- Distance range filter -->
-  <div id="distance-bar">
-    <div class="dist-label">Range</div>
-    <div class="dist-range">
-      <div class="dist-chip active" onclick="setRange(this, 0.5)">0.5km</div>
-      <div class="dist-chip" onclick="setRange(this, 1)">1km</div>
-      <div class="dist-chip" onclick="setRange(this, 5)">5km</div>
-    </div>
-  </div>
 
-  <!-- Compass -->
-  <div id="compass">
-    <div class="compass-needle"></div>
-    <div class="compass-label">NNE</div>
-  </div>
 
-  <!-- Heading strip -->
+<!-- Heading strip -->
   <div id="heading-strip">
     <div class="heading-wrapper">
       <div class="heading-center-mark"></div>
@@ -711,6 +645,7 @@
       <div>
         <div class="card-title" id="card-title">Empire State Building</div>
         <div class="card-subtitle" id="card-subtitle">443 m · 0.4 km away · SE</div>
+        <div class="card-architect" id="card-architect"><span>Architect</span>Shreve, Lamb & Harmon</div>
       </div>
       <div class="card-close" onclick="closeCard()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.6)" stroke-width="2.5">
@@ -738,50 +673,11 @@
     </div>
     <div class="card-actions">
       <button class="btn-primary">Navigate</button>
-      <div class="btn-secondary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-        </svg>
-      </div>
-      <div class="btn-secondary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-          <polyline points="16 6 12 2 8 6"/>
-          <line x1="12" y1="2" x2="12" y2="15"/>
-        </svg>
-      </div>
     </div>
   </div>
 
-  <!-- Bottom navigation -->
-  <nav id="bottom-nav">
-    <div class="nav-item active" onclick="setNav(this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-      </svg>
-      <div class="nav-label">AR View</div>
-    </div>
-    <div class="nav-item" onclick="setNav(this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <div class="nav-label">Search</div>
-    </div>
-    <div class="nav-item" onclick="setNav(this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-      <div class="nav-label">Explore</div>
-    </div>
-    <div class="nav-item" onclick="setNav(this)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <div class="nav-label">Profile</div>
-    </div>
-  </nav>
+  <!-- Shutter button -->
+  <div id="shutter-btn"></div>
 
   <script>
     const BUILDINGS = [
@@ -794,9 +690,10 @@
         year: '1973',
         distance: '0.3 km',
         direction: 'W',
+        architect: 'Edward Durell Stone',
         tags: ['Office', 'Neo-Gothic', 'Chicago 4th Tallest'],
         description: 'Originally the Standard Oil Building, its white Carrara marble cladding had to be entirely replaced with Mount Airy granite in the 1990s — one of the most expensive facade replacements in history.',
-        dotX: 21.4, dotY: 38.8, labelX: 12, labelY: 32,
+        dotX: 21.4, dotY: 38.8, labelX: 12, labelY: 30,
       },
       {
         id: '340park',
@@ -807,9 +704,10 @@
         year: '2007',
         distance: '0.5 km',
         direction: 'W',
+        architect: 'Solomon Cordwell Buenz',
         tags: ['Residential', 'Millennium Park Views', 'Luxury'],
         description: 'A slender residential tower overlooking Millennium Park and Lake Michigan. One of the tallest all-residential buildings in Chicago at the time of its completion.',
-        dotX: 35, dotY: 40, labelX: 26, labelY: 22,
+        dotX: 40, dotY: 44, labelX: 35, labelY: 37,
       },
       {
         id: 'stregis',
@@ -820,9 +718,10 @@
         year: '2021',
         distance: '0.2 km',
         direction: 'W',
-        tags: ['Hotel', 'Residential', 'Jeanne Gang', 'Chicago 3rd Tallest'],
+        architect: 'Jeanne Gang / Studio Gang',
+        tags: ['Hotel', 'Residential', 'Chicago 3rd Tallest'],
         description: 'Formerly Vista Tower, designed by Jeanne Gang of Studio Gang Architects. Its undulating glass facade shifts color with the sky and light. Chicago\'s third tallest building and one of the most distinctive supertalls in the world.',
-        dotX: 47, dotY: 20, labelX: 47, labelY: 8,
+        dotX: 51, dotY: 39, labelX: 49, labelY: 30,
       },
       {
         id: 'northharbor',
@@ -833,9 +732,10 @@
         year: '1988',
         distance: '0.4 km',
         direction: 'NW',
+        architect: 'Solomon Cordwell Buenz',
         tags: ['Residential', 'Harbor Views'],
         description: 'A 55-story residential tower on the inner harbor, offering views across Monroe Harbor and Lake Michigan toward the Illinois dunes on clear days.',
-        dotX: 72, dotY: 42, labelX: 72, labelY: 28,
+        dotX: 71, dotY: 45, labelX: 67, labelY: 37,
       },
       {
         id: 'harborpoint',
@@ -846,9 +746,10 @@
         year: '1975',
         distance: '0.5 km',
         direction: 'NW',
+        architect: 'Ezra Gordon & Jack M. Levin',
         tags: ['Residential', 'Harbor Views', 'Brutalist'],
         description: 'A 54-story residential tower completed in 1975 at the tip of the Streeterville peninsula, with panoramic exposure to the lake on three sides.',
-        dotX: 84, dotY: 43, labelX: 84, labelY: 29,
+        dotX: 78, dotY: 45, labelX: 82, labelY: 30,
       },
     ];
 
@@ -902,111 +803,42 @@
       document.getElementById('stat-floors').textContent = building.floors;
       document.getElementById('stat-year').textContent   = building.year;
       document.getElementById('card-description').textContent = building.description;
+      document.getElementById('card-architect').innerHTML = `<span>Architect</span>${building.architect}`;
 
       const tagsEl = document.getElementById('card-tags');
       tagsEl.innerHTML = building.tags.map(t => `<span class="tag">${t}</span>`).join('');
 
       document.getElementById('detail-card').classList.add('visible');
-      document.getElementById('bottom-nav').style.opacity = '0';
-      document.getElementById('bottom-nav').style.pointerEvents = 'none';
     }
 
     function closeCard() {
       document.getElementById('detail-card').classList.remove('visible');
-      document.getElementById('bottom-nav').style.opacity = '';
-      document.getElementById('bottom-nav').style.pointerEvents = '';
       activeBuilding = null;
     }
 
-    function setRange(el, km) {
-      document.querySelectorAll('.dist-chip').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
-      updatePinsForRange(km);
-    }
 
-    function updatePinsForRange(km) {
-      BUILDINGS.forEach(b => {
-        const vis = parseFloat(b.distance) <= km ? '1' : '0.2';
-        const label = document.getElementById('label-' + b.id);
-        const dot   = document.getElementById('dot-'   + b.id);
-        const line  = document.getElementById('line-'  + b.id);
-        if (label) label.style.opacity = vis;
-        if (dot)   dot.style.opacity   = vis;
-        if (line)  line.style.opacity  = vis;
-      });
-    }
-
-    let coordsOn = false;
-    function toggleCoords() {
-      coordsOn = !coordsOn;
-      const hud = document.getElementById('coord-hud');
-      const btn = document.getElementById('coord-toggle');
-      hud.style.display = coordsOn ? 'block' : 'none';
-      btn.style.color   = coordsOn ? '#5b8fff' : 'rgba(91,143,255,0.8)';
-      btn.style.background = coordsOn ? 'rgba(91,143,255,0.2)' : 'rgba(0,0,0,0.6)';
-    }
-
-    function updateCoords(clientX, clientY) {
-      if (!coordsOn) return;
-      const x = (clientX / window.innerWidth  * 100).toFixed(1);
-      const y = (clientY / window.innerHeight * 100).toFixed(1);
-      document.getElementById('coord-hud').textContent = `x: ${x}   y: ${y}`;
-    }
-
-    document.addEventListener('mousemove', e => updateCoords(e.clientX, e.clientY));
-    document.addEventListener('touchmove', e => {
-      const t = e.touches[0];
-      updateCoords(t.clientX, t.clientY);
-    }, { passive: true });
-
-    function setNav(el) {
-      document.querySelectorAll('.nav-item').forEach(n => {
-        n.classList.remove('active');
-        n.querySelectorAll('svg *').forEach(p => p.setAttribute('stroke', 'rgba(240,240,245,0.4)'));
-      });
-      el.classList.add('active');
-      el.querySelectorAll('svg *').forEach(p => p.setAttribute('stroke', 'var(--color-accent)'));
-    }
 
     function buildHeadingStrip() {
-      const ticks = ['N', '20', '40', '60', '80', 'E', '110', '130', '150', '170',
-                     'S', '200', '220', '240', '260', 'W', '290', '310', '330', '350'];
+      const ticks = ['320', '330', '340', '350', 'N', '10', '20', '30', '40'];
       const track = document.getElementById('heading-track');
-      // Duplicate for seamless loop
-      [1, 2].forEach(() => {
-        ticks.forEach(t => {
-          const span = document.createElement('span');
-          span.className = 'heading-tick' + (['N','E','S','W'].includes(t) ? ' major' : '');
-          span.textContent = t;
-          track.appendChild(span);
-        });
+      ticks.forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'heading-tick' + (t === 'N' ? ' major' : '');
+        span.textContent = t;
+        if (t === 'N') span.id = 'heading-n';
+        track.appendChild(span);
+      });
+      requestAnimationFrame(() => {
+        const wrapper = track.parentElement;
+        const nEl = document.getElementById('heading-n');
+        if (nEl && wrapper) {
+          const offset = nEl.offsetLeft + nEl.offsetWidth / 2 - wrapper.offsetWidth / 2;
+          track.style.setProperty('--jiggle-center', `-${offset}px`);
+        }
       });
     }
 
-    async function toggleCamera() {
-      const video = document.getElementById('camera-feed');
-      const placeholder = document.getElementById('camera-placeholder');
-      if (video.style.display === 'none') {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
-          });
-          video.srcObject = stream;
-          video.style.display = 'block';
-          placeholder.style.display = 'none';
-          showToast('Camera active');
-        } catch {
-          showToast('Camera unavailable');
-        }
-      } else {
-        video.srcObject?.getTracks().forEach(t => t.stop());
-        video.style.display = 'none';
-        placeholder.style.display = 'block';
-        showToast('Camera off');
-      }
-    }
-
-    let toastTimer;
+let toastTimer;
     function showToast(msg) {
       const el = document.getElementById('ar-toast');
       el.textContent = msg;
@@ -1024,17 +856,7 @@
       if (e.changedTouches[0].clientY - touchStartY > 60) closeCard();
     }, { passive: true });
 
-    // DeviceOrientation for compass
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientationabsolute', e => {
-        const deg = e.alpha || 0;
-        document.querySelector('.compass-needle').style.transform = `rotate(${deg}deg)`;
-        const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-        document.querySelector('.compass-label').textContent = dirs[Math.round(deg / 22.5) % 16];
-      }, true);
-    }
-
-    // Init
+// Init
     buildPins();
     buildHeadingStrip();
     setTimeout(() => showToast('Tap a building pin to explore'), 1200);
