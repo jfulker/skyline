@@ -621,7 +621,7 @@
       <div class="app-logo">Sky<span>line</span></div>
     </div>
     <div class="status-right">
-      <div class="location-badge" onclick="openCard(CHICAGO)" style="cursor:pointer;">
+      <div class="location-badge" onclick="event.stopPropagation(); openCard(CHICAGO)" style="cursor:pointer;">
         <div class="location-dot"></div>
         Chicago, IL
       </div>
@@ -769,7 +769,7 @@
           <div class="ar-pin-name">${b.name}</div>
           <div class="ar-pin-height">${b.height.split(' / ')[0]}</div>
         `;
-        label.addEventListener('click', () => openCard(b));
+        label.addEventListener('click', e => { e.stopPropagation(); openCard(b); });
         layer.appendChild(label);
 
         // Dot — center anchored at (dotX%, dotY%)
@@ -777,7 +777,7 @@
         dot.className = 'ar-pin-dot';
         dot.id = 'dot-' + b.id;
         dot.style.cssText = `position:absolute;left:${b.dotX}%;top:${b.dotY}%;transform:translate(-50%,-50%);cursor:pointer;`;
-        dot.addEventListener('click', () => openCard(b));
+        dot.addEventListener('click', e => { e.stopPropagation(); openCard(b); });
         layer.appendChild(dot);
 
         // SVG connector line from label bottom-center to dot center
