@@ -621,7 +621,7 @@
       <div class="app-logo">Sky<span>line</span></div>
     </div>
     <div class="status-right">
-      <div class="location-badge">
+      <div class="location-badge" onclick="openCard(CHICAGO)" style="cursor:pointer;">
         <div class="location-dot"></div>
         Chicago, IL
       </div>
@@ -656,15 +656,15 @@
     <div class="card-stats">
       <div class="stat-item">
         <div class="stat-value" id="stat-height">443 m</div>
-        <div class="stat-label">Height</div>
+        <div class="stat-label" id="stat-label-1">Height</div>
       </div>
       <div class="stat-item">
         <div class="stat-value" id="stat-floors">102</div>
-        <div class="stat-label">Floors</div>
+        <div class="stat-label" id="stat-label-2">Floors</div>
       </div>
       <div class="stat-item">
         <div class="stat-value" id="stat-year">1931</div>
-        <div class="stat-label">Built</div>
+        <div class="stat-label" id="stat-label-3">Built</div>
       </div>
     </div>
     <div class="card-tags" id="card-tags"></div>
@@ -707,7 +707,7 @@
         architect: 'Solomon Cordwell Buenz',
         tags: ['Residential', 'Millennium Park Views', 'Luxury'],
         description: 'A slender residential tower overlooking Millennium Park and Lake Michigan. One of the tallest all-residential buildings in Chicago at the time of its completion.',
-        dotX: 40, dotY: 44, labelX: 22, labelY: 37,
+        dotX: 40, dotY: 44, labelX: 29, labelY: 37,
       },
       {
         id: 'stregis',
@@ -735,7 +735,7 @@
         architect: 'Solomon Cordwell Buenz',
         tags: ['Residential', 'Harbor Views'],
         description: 'A 55-story residential tower on the inner harbor, offering views across Monroe Harbor and Lake Michigan toward the Illinois dunes on clear days.',
-        dotX: 71, dotY: 45, labelX: 78, labelY: 37,
+        dotX: 71, dotY: 45, labelX: 71, labelY: 37,
       },
       {
         id: 'harborpoint',
@@ -794,16 +794,47 @@
       });
     }
 
+    const CHICAGO = {
+      name: 'Chicago',
+      subtitle: 'Illinois · Lake Michigan',
+      stat1: { value: '2.7M', label: 'Population' },
+      stat2: { value: '606 km²', label: 'Area' },
+      stat3: { value: '1837', label: 'Founded' },
+      architect: null,
+      tags: ['Windy City', 'The Loop', 'Architecture Capital', 'Great Lakes'],
+      description: 'One of the world\'s great architectural laboratories. Chicago pioneered the skyscraper, gave rise to the Chicago School of architecture, and continues to define the modern urban skyline. Its lakefront — protected by a 19th-century ordinance — remains open parkland for 26 miles.',
+    };
+
     function openCard(building) {
       activeBuilding = building;
       document.getElementById('card-title').textContent = building.name;
-      document.getElementById('card-subtitle').textContent =
-        `${building.height} · ${building.distance} away · ${building.direction}`;
-      document.getElementById('stat-height').textContent = building.height;
-      document.getElementById('stat-floors').textContent = building.floors;
-      document.getElementById('stat-year').textContent   = building.year;
+
+      if (building.subtitle) {
+        document.getElementById('card-subtitle').textContent = building.subtitle;
+      } else {
+        document.getElementById('card-subtitle').textContent =
+          `${building.height} · ${building.distance} away · ${building.direction}`;
+      }
+
+      const archEl = document.getElementById('card-architect');
+      if (building.architect) {
+        archEl.innerHTML = `<span>Architect</span>${building.architect}`;
+        archEl.style.display = '';
+      } else {
+        archEl.style.display = 'none';
+      }
+
+      const s1 = building.stat1 || { value: building.height, label: 'Height' };
+      const s2 = building.stat2 || { value: building.floors, label: 'Floors' };
+      const s3 = building.stat3 || { value: building.year,   label: 'Built'  };
+      document.getElementById('stat-height').textContent   = s1.value;
+      document.getElementById('stat-label-1').textContent  = s1.label;
+      document.getElementById('stat-floors').textContent   = s2.value;
+      document.getElementById('stat-label-2').textContent  = s2.label;
+      document.getElementById('stat-year').textContent     = s3.value;
+      document.getElementById('stat-label-3').textContent  = s3.label;
+
       document.getElementById('card-description').textContent = building.description;
-      document.getElementById('card-architect').innerHTML = `<span>Architect</span>${building.architect}`;
 
       const tagsEl = document.getElementById('card-tags');
       tagsEl.innerHTML = building.tags.map(t => `<span class="tag">${t}</span>`).join('');
@@ -846,6 +877,14 @@ let toastTimer;
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
     }
+
+    // Tap outside to close card
+    document.addEventListener('click', e => {
+      const card = document.getElementById('detail-card');
+      if (card.classList.contains('visible') && !card.contains(e.target)) {
+        closeCard();
+      }
+    });
 
     // Swipe down to close card
     let touchStartY = 0;
