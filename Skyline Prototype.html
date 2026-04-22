@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Skyline AR</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg: #0a0a0f;
+      --color-surface: rgba(16, 16, 28, 0.85);
+      --color-surface-light: rgba(255, 255, 255, 0.07);
+      --color-border: rgba(255, 255, 255, 0.12);
+      --color-accent: #5b8fff;
+      --color-accent-dim: rgba(91, 143, 255, 0.18);
+      --color-text-primary: #f0f0f5;
+      --color-text-secondary: rgba(240, 240, 245, 0.55);
+      --color-text-muted: rgba(240, 240, 245, 0.3);
+      --color-tag-bg: rgba(91, 143, 255, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--color-bg);
+      font-family: var(--font);
+      color: var(--color-text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Camera layer ── */
+    #camera-feed {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #camera-placeholder {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(
+        170deg,
+        #0d1a3a 0%,
+        #1a2d5a 30%,
+        #2a4a6e 55%,
+        #1e3a50 70%,
+        #0d1520 100%
+      );
+      overflow: hidden;
+    }
+
+    /* Animated sky gradient */
+    #camera-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 60% 10%, rgba(80,140,255,0.18) 0%, transparent 70%);
+      animation: skyGlow 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes skyGlow {
+      from { opacity: 0.6; }
+      to   { opacity: 1; }
+    }
+
+    /* Silhouette buildings */
+    .skyline-svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+    }
+
+    /* ── AR scan grid overlay ── */
+    #ar-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(91, 143, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91, 143, 255, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 0%, transparent 100%);
+    }
+
+    /* ── AR building pins ── */
+    #ar-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .ar-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: all;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .ar-pin:active { transform: translate(-50%, -100%) scale(0.95); }
+
+    .ar-pin-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--color-accent);
+      border-radius: 50%;
+      margin: 0 auto;
+      box-shadow: 0 0 0 3px rgba(91, 143, 255, 0.3), 0 0 16px rgba(91, 143, 255, 0.5);
+      animation: pinPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pinPulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(91,143,255,0.3), 0 0 16px rgba(91,143,255,0.5); }
+      50%       { box-shadow: 0 0 0 6px rgba(91,143,255,0.15), 0 0 28px rgba(91,143,255,0.7); }
+    }
+
+    .ar-pin-stem {
+      width: 1px;
+      height: 28px;
+      background: linear-gradient(to bottom, var(--color-accent), transparent);
+      margin: 0 auto;
+    }
+
+    .ar-pin-label {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 5px 9px;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin-bottom: 0;
+    }
+
+    .ar-pin-name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--color-text-primary);
+    }
+
+    .ar-pin-height {
+      font-size: 10px;
+      color: var(--color-accent);
+      margin-top: 1px;
+    }
+
+    /* ── Status Bar ── */
+    #status-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 14px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(10,10,20,0.85) 0%, transparent 100%);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-logo {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--color-text-primary);
+    }
+
+    .app-logo span {
+      color: var(--color-accent);
+    }
+
+    .location-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--color-surface-light);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .location-dot {
+      width: 6px;
+      height: 6px;
+      background: #4eff91;
+      border-radius: 50%;
+      animation: locBlink 2s infinite;
+    }
+
+    @keyframes locBlink {
+      0%, 90%, 100% { opacity: 1; }
+      45% { opacity: 0.3; }
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      background: var(--color-surface-light);
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.15s;
+    }
+
+    .icon-btn:active { background: var(--color-accent-dim); }
+
+    /* ── Compass ── */
+    #compass {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 10;
+      width: 56px;
+      height: 56px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .compass-needle {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      animation: compassSway 8s ease-in-out infinite;
+    }
+
+    @keyframes compassSway {
+      0%, 100% { transform: rotate(0deg); }
+      25%  { transform: rotate(4deg); }
+      75%  { transform: rotate(-3deg); }
+    }
+
+    .compass-needle::before,
+    .compass-needle::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+    }
+
+    .compass-needle::before {
+      top: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: 9px solid #ff4f4f;
+    }
+
+    .compass-needle::after {
+      bottom: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 9px solid rgba(255,255,255,0.4);
+    }
+
+    .compass-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--color-text-secondary);
+      margin-top: 3px;
+    }
+
+    /* ── Distance indicator bar ── */
+    #distance-bar {
+      position: fixed;
+      top: 68px;
+      left: 20px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .dist-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+
+    .dist-range {
+      display: flex;
+      gap: 4px;
+    }
+
+    .dist-chip {
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-light);
+      color: var(--color-text-secondary);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dist-chip.active {
+      background: var(--color-accent-dim);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    /* ── Detail card (bottom sheet) ── */
+    #detail-card {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 12px 20px 32px;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    #detail-card.visible { transform: translateY(0); }
+
+    .card-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--color-border);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 3px;
+    }
+
+    .card-close {
+      width: 30px;
+      height: 30px;
+      background: var(--color-surface-light);
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .card-stats {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-item {
+      flex: 1;
+      background: var(--color-surface-light);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .stat-value {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--color-text-primary);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .tag {
+      background: var(--color-tag-bg);
+      border: 1px solid rgba(91, 143, 255, 0.25);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-accent);
+    }
+
+    .card-description {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      height: 44px;
+      background: var(--color-accent);
+      border-radius: var(--radius-md);
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary:active { opacity: 0.85; }
+
+    .btn-secondary {
+      width: 44px;
+      height: 44px;
+      background: var(--color-surface-light);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:active { background: var(--color-accent-dim); }
+
+    /* ── Bottom nav ── */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 10px 0 28px;
+      background: linear-gradient(to top, rgba(10,10,20,0.92) 0%, transparent 100%);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px 18px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s;
+    }
+
+    .nav-item.active .nav-label { color: var(--color-accent); }
+    .nav-item.active svg path, .nav-item.active svg circle, .nav-item.active svg rect {
+      stroke: var(--color-accent);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--color-text-muted);
+    }
+
+    /* ── Scan animation ring ── */
+    #scan-ring {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    .scan-circle {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid var(--color-accent);
+      animation: scanExpand 3s ease-out infinite;
+    }
+
+    .scan-circle:nth-child(2) { animation-delay: 1s; }
+    .scan-circle:nth-child(3) { animation-delay: 2s; }
+
+    @keyframes scanExpand {
+      0%   { transform: scale(0.3); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* ── Heading strip ── */
+    #heading-strip {
+      position: fixed;
+      top: 130px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      pointer-events: none;
+    }
+
+    .heading-tick {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      padding: 0 8px;
+    }
+
+    .heading-tick.major {
+      color: var(--color-text-secondary);
+      font-size: 11px;
+    }
+
+    .heading-center-mark {
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1px;
+      height: calc(100% + 8px);
+      background: var(--color-accent);
+      opacity: 0.7;
+    }
+
+    .heading-wrapper {
+      position: relative;
+      overflow: hidden;
+      padding: 4px 0;
+      background: rgba(10,10,20,0.5);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--color-border);
+    }
+
+    .heading-track {
+      display: flex;
+      animation: headingScroll 20s linear infinite;
+    }
+
+    @keyframes headingScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── Tooltip notification ── */
+    #ar-toast {
+      position: fixed;
+      top: 160px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      z-index: 30;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 9px 16px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+    }
+
+    #ar-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Camera or placeholder background -->
+  <video id="camera-feed" autoplay muted playsinline style="display:none;"></video>
+
+  <div id="camera-placeholder">
+    <svg class="skyline-svg" viewBox="0 0 390 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bldgGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a2a4a"/>
+          <stop offset="100%" stop-color="#0a1020"/>
+        </linearGradient>
+        <linearGradient id="bldgGrad2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#142238"/>
+          <stop offset="100%" stop-color="#080f1c"/>
+        </linearGradient>
+        <!-- Window lights -->
+        <pattern id="windows" x="0" y="0" width="10" height="12" patternUnits="userSpaceOnUse">
+          <rect x="1.5" y="2" width="3" height="4" fill="rgba(200,220,255,0.12)" rx="0.5"/>
+          <rect x="6" y="2" width="3" height="4" fill="rgba(200,220,255,0.08)" rx="0.5"/>
+          <rect x="1.5" y="8" width="3" height="4" fill="rgba(200,220,255,0.15)" rx="0.5"/>
+          <rect x="6" y="8" width="3" height="4" fill="rgba(200,220,255,0.06)" rx="0.5"/>
+        </pattern>
+      </defs>
+
+      <!-- Background buildings layer -->
+      <rect x="0"   y="140" width="30"  height="140" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="25"  y="110" width="20"  height="170" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="40"  y="150" width="35"  height="130" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="70"  y="100" width="18"  height="180" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="85"  y="130" width="40"  height="150" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="120" y="90"  width="25"  height="190" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="142" y="120" width="30"  height="160" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="168" y="80"  width="20"  height="200" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="183" y="108" width="35"  height="172" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="215" y="95"  width="22"  height="185" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="232" y="130" width="40"  height="150" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="268" y="105" width="18"  height="175" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="282" y="60"  width="24"  height="220" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="302" y="120" width="36"  height="160" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="334" y="90"  width="20"  height="190" fill="url(#bldgGrad2)" opacity="0.7"/>
+      <rect x="350" y="140" width="40"  height="140" fill="url(#bldgGrad2)" opacity="0.7"/>
+
+      <!-- Foreground buildings layer -->
+      <rect x="0"   y="160" width="28"  height="120" fill="url(#bldgGrad)"/>
+      <rect x="24"  y="130" width="22"  height="150" fill="url(#bldgGrad)"/>
+      <!-- Antenna on 2nd -->
+      <rect x="34"  y="110" width="2"   height="22"  fill="rgba(255,255,255,0.3)"/>
+      <rect x="42"  y="158" width="42"  height="122" fill="url(#bldgGrad)"/>
+      <rect x="80"  y="120" width="16"  height="160" fill="url(#bldgGrad)"/>
+      <rect x="92"  y="145" width="44"  height="135" fill="url(#bldgGrad)"/>
+      <!-- Tall center building -->
+      <rect x="130" y="70"  width="30"  height="210" fill="url(#bldgGrad)"/>
+      <rect x="138" y="45"  width="14"  height="28"  fill="url(#bldgGrad)"/>
+      <!-- Antenna -->
+      <rect x="144" y="30"  width="2"   height="18"  fill="rgba(255,80,80,0.7)"/>
+      <circle cx="145" cy="30" r="2" fill="rgba(255,80,80,0.9)"/>
+
+      <rect x="156" y="110" width="36"  height="170" fill="url(#bldgGrad)"/>
+      <!-- Empire-like spire building -->
+      <rect x="186" y="60"  width="32"  height="220" fill="url(#bldgGrad)"/>
+      <rect x="193" y="38"  width="18"  height="25"  fill="url(#bldgGrad)"/>
+      <rect x="197" y="20"  width="10"  height="20"  fill="url(#bldgGrad)"/>
+      <rect x="200" y="5"   width="4"   height="18"  fill="rgba(255,255,255,0.4)"/>
+      <!-- Antenna light -->
+      <circle cx="202" cy="5" r="2" fill="rgba(255,80,80,0.9)"/>
+
+      <rect x="214" y="100" width="26"  height="180" fill="url(#bldgGrad)"/>
+      <rect x="236" y="138" width="38"  height="142" fill="url(#bldgGrad)"/>
+      <rect x="270" y="115" width="20"  height="165" fill="url(#bldgGrad)"/>
+      <!-- Step-top building -->
+      <rect x="285" y="75"  width="28"  height="205" fill="url(#bldgGrad)"/>
+      <rect x="290" y="58"  width="18"  height="20"  fill="url(#bldgGrad)"/>
+      <rect x="294" y="44"  width="10"  height="16"  fill="url(#bldgGrad)"/>
+      <rect x="296" y="30"  width="6"   height="16"  fill="rgba(255,255,255,0.25)"/>
+
+      <rect x="308" y="122" width="36"  height="158" fill="url(#bldgGrad)"/>
+      <rect x="340" y="100" width="22"  height="180" fill="url(#bldgGrad)"/>
+      <rect x="358" y="148" width="32"  height="132" fill="url(#bldgGrad)"/>
+
+      <!-- Window lights overlay -->
+      <rect x="0" y="0" width="390" height="280" fill="url(#windows)" opacity="0.6"/>
+
+      <!-- Ground -->
+      <rect x="0" y="265" width="390" height="15" fill="#080f1c"/>
+    </svg>
+  </div>
+
+  <!-- AR scan grid -->
+  <div id="ar-grid"></div>
+
+  <!-- Scan animation -->
+  <div id="scan-ring">
+    <div class="scan-circle"></div>
+    <div class="scan-circle"></div>
+    <div class="scan-circle"></div>
+  </div>
+
+  <!-- AR layer with building pins -->
+  <div id="ar-layer"></div>
+
+  <!-- Toast -->
+  <div id="ar-toast">Tap a pin to explore</div>
+
+  <!-- Status bar -->
+  <header id="status-bar">
+    <div class="status-left">
+      <div class="app-logo">Sky<span>line</span></div>
+      <div class="location-badge">
+        <div class="location-dot"></div>
+        Midtown, NYC
+      </div>
+    </div>
+    <div class="status-right">
+      <div class="icon-btn" onclick="toggleCamera()" title="Camera">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <div class="icon-btn" title="Layers">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Distance range filter -->
+  <div id="distance-bar">
+    <div class="dist-label">Range</div>
+    <div class="dist-range">
+      <div class="dist-chip active" onclick="setRange(this, 0.5)">0.5km</div>
+      <div class="dist-chip" onclick="setRange(this, 1)">1km</div>
+      <div class="dist-chip" onclick="setRange(this, 5)">5km</div>
+    </div>
+  </div>
+
+  <!-- Compass -->
+  <div id="compass">
+    <div class="compass-needle"></div>
+    <div class="compass-label">NNE</div>
+  </div>
+
+  <!-- Heading strip -->
+  <div id="heading-strip">
+    <div class="heading-wrapper">
+      <div class="heading-center-mark"></div>
+      <div class="heading-track" id="heading-track"></div>
+    </div>
+  </div>
+
+  <!-- Detail card -->
+  <div id="detail-card">
+    <div class="card-handle"></div>
+    <div class="card-header">
+      <div>
+        <div class="card-title" id="card-title">Empire State Building</div>
+        <div class="card-subtitle" id="card-subtitle">443 m · 0.4 km away · SE</div>
+      </div>
+      <div class="card-close" onclick="closeCard()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.6)" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+    </div>
+    <div class="card-stats">
+      <div class="stat-item">
+        <div class="stat-value" id="stat-height">443 m</div>
+        <div class="stat-label">Height</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-floors">102</div>
+        <div class="stat-label">Floors</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-year">1931</div>
+        <div class="stat-label">Built</div>
+      </div>
+    </div>
+    <div class="card-tags" id="card-tags"></div>
+    <div class="card-description" id="card-description">
+      An iconic Art Deco skyscraper in Midtown Manhattan offering panoramic views from its observation decks.
+    </div>
+    <div class="card-actions">
+      <button class="btn-primary">Navigate</button>
+      <div class="btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        </svg>
+      </div>
+      <div class="btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.7)" stroke-width="2">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom navigation -->
+  <nav id="bottom-nav">
+    <div class="nav-item active" onclick="setNav(this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+      </svg>
+      <div class="nav-label">AR View</div>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <div class="nav-label">Search</div>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <div class="nav-label">Explore</div>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,240,245,0.4)" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <div class="nav-label">Profile</div>
+    </div>
+  </nav>
+
+  <script>
+    const BUILDINGS = [
+      {
+        id: 'empire',
+        name: 'Empire State Building',
+        address: '350 5th Ave, New York',
+        height: '443 m',
+        floors: '102',
+        year: '1931',
+        distance: '0.4 km',
+        direction: 'SE',
+        tags: ['Art Deco', 'Observatory', 'Landmark'],
+        description: 'An iconic Art Deco skyscraper in Midtown Manhattan offering panoramic views from its observation decks on floors 86 and 102.',
+        pinX: 52,
+        pinY: 52,
+      },
+      {
+        id: 'chrysler',
+        name: 'Chrysler Building',
+        address: '405 Lexington Ave',
+        height: '319 m',
+        floors: '77',
+        year: '1930',
+        distance: '0.6 km',
+        direction: 'NE',
+        tags: ['Art Deco', 'Steel Spire'],
+        description: 'A celebrated Art Deco skyscraper known for its distinctive stainless steel eagle gargoyles and terraced crown.',
+        pinX: 72,
+        pinY: 44,
+      },
+      {
+        id: 'onewt',
+        name: 'One World Trade',
+        address: 'Lower Manhattan',
+        height: '541 m',
+        floors: '104',
+        year: '2014',
+        distance: '4.2 km',
+        direction: 'S',
+        tags: ['Tallest in USA', 'Memorial', 'Office'],
+        description: 'The tallest building in the Western Hemisphere, built on the site of the original World Trade Center in Lower Manhattan.',
+        pinX: 22,
+        pinY: 60,
+      },
+      {
+        id: 'rockefeller',
+        name: '30 Rockefeller Plaza',
+        address: '30 Rockefeller Plaza',
+        height: '260 m',
+        floors: '70',
+        year: '1933',
+        distance: '0.3 km',
+        direction: 'NW',
+        tags: ['Art Deco', 'Top of the Rock'],
+        description: 'The centerpiece of Rockefeller Center, featuring the famous Top of the Rock observation deck with views across Central Park.',
+        pinX: 34,
+        pinY: 38,
+      },
+      {
+        id: '432park',
+        name: '432 Park Avenue',
+        address: '432 Park Ave',
+        height: '426 m',
+        floors: '96',
+        year: '2015',
+        distance: '0.8 km',
+        direction: 'N',
+        tags: ['Supertall', 'Luxury Residential'],
+        description: 'A super-slender residential supertall skyscraper, one of the tallest in the Western Hemisphere by structural height.',
+        pinX: 78,
+        pinY: 30,
+      },
+    ];
+
+    let activeBuilding = null;
+
+    function buildPins() {
+      const layer = document.getElementById('ar-layer');
+      BUILDINGS.forEach(b => {
+        const pin = document.createElement('div');
+        pin.className = 'ar-pin';
+        pin.id = 'pin-' + b.id;
+        pin.style.left = b.pinX + '%';
+        pin.style.top  = b.pinY + '%';
+        pin.innerHTML = `
+          <div class="ar-pin-label">
+            <div class="ar-pin-name">${b.name.split(' ')[0]} ${b.name.split(' ')[1] || ''}</div>
+            <div class="ar-pin-height">${b.height}</div>
+          </div>
+          <div class="ar-pin-stem"></div>
+          <div class="ar-pin-dot"></div>
+        `;
+        pin.addEventListener('click', () => openCard(b));
+        layer.appendChild(pin);
+      });
+    }
+
+    function openCard(building) {
+      activeBuilding = building;
+      document.getElementById('card-title').textContent = building.name;
+      document.getElementById('card-subtitle').textContent =
+        `${building.height} · ${building.distance} away · ${building.direction}`;
+      document.getElementById('stat-height').textContent = building.height;
+      document.getElementById('stat-floors').textContent = building.floors;
+      document.getElementById('stat-year').textContent   = building.year;
+      document.getElementById('card-description').textContent = building.description;
+
+      const tagsEl = document.getElementById('card-tags');
+      tagsEl.innerHTML = building.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+      document.getElementById('detail-card').classList.add('visible');
+      document.getElementById('bottom-nav').style.opacity = '0';
+      document.getElementById('bottom-nav').style.pointerEvents = 'none';
+    }
+
+    function closeCard() {
+      document.getElementById('detail-card').classList.remove('visible');
+      document.getElementById('bottom-nav').style.opacity = '';
+      document.getElementById('bottom-nav').style.pointerEvents = '';
+      activeBuilding = null;
+    }
+
+    function setRange(el, km) {
+      document.querySelectorAll('.dist-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      updatePinsForRange(km);
+    }
+
+    function updatePinsForRange(km) {
+      BUILDINGS.forEach(b => {
+        const dist = parseFloat(b.distance);
+        const pin = document.getElementById('pin-' + b.id);
+        if (pin) pin.style.opacity = dist <= km ? '1' : '0.2';
+      });
+    }
+
+    function setNav(el) {
+      document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.remove('active');
+        n.querySelectorAll('svg *').forEach(p => p.setAttribute('stroke', 'rgba(240,240,245,0.4)'));
+      });
+      el.classList.add('active');
+      el.querySelectorAll('svg *').forEach(p => p.setAttribute('stroke', 'var(--color-accent)'));
+    }
+
+    function buildHeadingStrip() {
+      const ticks = ['N', '20', '40', '60', '80', 'E', '110', '130', '150', '170',
+                     'S', '200', '220', '240', '260', 'W', '290', '310', '330', '350'];
+      const track = document.getElementById('heading-track');
+      // Duplicate for seamless loop
+      [1, 2].forEach(() => {
+        ticks.forEach(t => {
+          const span = document.createElement('span');
+          span.className = 'heading-tick' + (['N','E','S','W'].includes(t) ? ' major' : '');
+          span.textContent = t;
+          track.appendChild(span);
+        });
+      });
+    }
+
+    async function toggleCamera() {
+      const video = document.getElementById('camera-feed');
+      const placeholder = document.getElementById('camera-placeholder');
+      if (video.style.display === 'none') {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+          });
+          video.srcObject = stream;
+          video.style.display = 'block';
+          placeholder.style.display = 'none';
+          showToast('Camera active');
+        } catch {
+          showToast('Camera unavailable');
+        }
+      } else {
+        video.srcObject?.getTracks().forEach(t => t.stop());
+        video.style.display = 'none';
+        placeholder.style.display = 'block';
+        showToast('Camera off');
+      }
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const el = document.getElementById('ar-toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    // Swipe down to close card
+    let touchStartY = 0;
+    document.getElementById('detail-card').addEventListener('touchstart', e => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    document.getElementById('detail-card').addEventListener('touchend', e => {
+      if (e.changedTouches[0].clientY - touchStartY > 60) closeCard();
+    }, { passive: true });
+
+    // DeviceOrientation for compass
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientationabsolute', e => {
+        const deg = e.alpha || 0;
+        document.querySelector('.compass-needle').style.transform = `rotate(${deg}deg)`;
+        const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+        document.querySelector('.compass-label').textContent = dirs[Math.round(deg / 22.5) % 16];
+      }, true);
+    }
+
+    // Init
+    buildPins();
+    buildHeadingStrip();
+    setTimeout(() => showToast('Tap a building pin to explore'), 1200);
+  </script>
+</body>
+</html>
