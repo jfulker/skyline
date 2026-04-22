@@ -48,38 +48,14 @@
       position: fixed;
       inset: 0;
       z-index: 0;
-      background: linear-gradient(
-        170deg,
-        #0d1a3a 0%,
-        #1a2d5a 30%,
-        #2a4a6e 55%,
-        #1e3a50 70%,
-        #0d1520 100%
-      );
       overflow: hidden;
     }
 
-    /* Animated sky gradient */
-    #camera-placeholder::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 60% 10%, rgba(80,140,255,0.18) 0%, transparent 70%);
-      animation: skyGlow 6s ease-in-out infinite alternate;
-    }
-
-    @keyframes skyGlow {
-      from { opacity: 0.6; }
-      to   { opacity: 1; }
-    }
-
-    /* Silhouette buildings */
-    .skyline-svg {
-      position: absolute;
-      bottom: 0;
-      left: 0;
+    #bg-photo {
       width: 100%;
-      height: 55%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
     }
 
     /* ── AR scan grid overlay ── */
@@ -139,7 +115,7 @@
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-sm);
-      padding: 5px 9px;
+      padding: 5px 14px;
       white-space: nowrap;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -654,86 +630,7 @@
   <video id="camera-feed" autoplay muted playsinline style="display:none;"></video>
 
   <div id="camera-placeholder">
-    <svg class="skyline-svg" viewBox="0 0 390 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bldgGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1a2a4a"/>
-          <stop offset="100%" stop-color="#0a1020"/>
-        </linearGradient>
-        <linearGradient id="bldgGrad2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#142238"/>
-          <stop offset="100%" stop-color="#080f1c"/>
-        </linearGradient>
-        <!-- Window lights -->
-        <pattern id="windows" x="0" y="0" width="10" height="12" patternUnits="userSpaceOnUse">
-          <rect x="1.5" y="2" width="3" height="4" fill="rgba(200,220,255,0.12)" rx="0.5"/>
-          <rect x="6" y="2" width="3" height="4" fill="rgba(200,220,255,0.08)" rx="0.5"/>
-          <rect x="1.5" y="8" width="3" height="4" fill="rgba(200,220,255,0.15)" rx="0.5"/>
-          <rect x="6" y="8" width="3" height="4" fill="rgba(200,220,255,0.06)" rx="0.5"/>
-        </pattern>
-      </defs>
-
-      <!-- Background buildings layer -->
-      <rect x="0"   y="140" width="30"  height="140" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="25"  y="110" width="20"  height="170" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="40"  y="150" width="35"  height="130" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="70"  y="100" width="18"  height="180" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="85"  y="130" width="40"  height="150" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="120" y="90"  width="25"  height="190" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="142" y="120" width="30"  height="160" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="168" y="80"  width="20"  height="200" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="183" y="108" width="35"  height="172" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="215" y="95"  width="22"  height="185" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="232" y="130" width="40"  height="150" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="268" y="105" width="18"  height="175" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="282" y="60"  width="24"  height="220" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="302" y="120" width="36"  height="160" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="334" y="90"  width="20"  height="190" fill="url(#bldgGrad2)" opacity="0.7"/>
-      <rect x="350" y="140" width="40"  height="140" fill="url(#bldgGrad2)" opacity="0.7"/>
-
-      <!-- Foreground buildings layer -->
-      <rect x="0"   y="160" width="28"  height="120" fill="url(#bldgGrad)"/>
-      <rect x="24"  y="130" width="22"  height="150" fill="url(#bldgGrad)"/>
-      <!-- Antenna on 2nd -->
-      <rect x="34"  y="110" width="2"   height="22"  fill="rgba(255,255,255,0.3)"/>
-      <rect x="42"  y="158" width="42"  height="122" fill="url(#bldgGrad)"/>
-      <rect x="80"  y="120" width="16"  height="160" fill="url(#bldgGrad)"/>
-      <rect x="92"  y="145" width="44"  height="135" fill="url(#bldgGrad)"/>
-      <!-- Tall center building -->
-      <rect x="130" y="70"  width="30"  height="210" fill="url(#bldgGrad)"/>
-      <rect x="138" y="45"  width="14"  height="28"  fill="url(#bldgGrad)"/>
-      <!-- Antenna -->
-      <rect x="144" y="30"  width="2"   height="18"  fill="rgba(255,80,80,0.7)"/>
-      <circle cx="145" cy="30" r="2" fill="rgba(255,80,80,0.9)"/>
-
-      <rect x="156" y="110" width="36"  height="170" fill="url(#bldgGrad)"/>
-      <!-- Empire-like spire building -->
-      <rect x="186" y="60"  width="32"  height="220" fill="url(#bldgGrad)"/>
-      <rect x="193" y="38"  width="18"  height="25"  fill="url(#bldgGrad)"/>
-      <rect x="197" y="20"  width="10"  height="20"  fill="url(#bldgGrad)"/>
-      <rect x="200" y="5"   width="4"   height="18"  fill="rgba(255,255,255,0.4)"/>
-      <!-- Antenna light -->
-      <circle cx="202" cy="5" r="2" fill="rgba(255,80,80,0.9)"/>
-
-      <rect x="214" y="100" width="26"  height="180" fill="url(#bldgGrad)"/>
-      <rect x="236" y="138" width="38"  height="142" fill="url(#bldgGrad)"/>
-      <rect x="270" y="115" width="20"  height="165" fill="url(#bldgGrad)"/>
-      <!-- Step-top building -->
-      <rect x="285" y="75"  width="28"  height="205" fill="url(#bldgGrad)"/>
-      <rect x="290" y="58"  width="18"  height="20"  fill="url(#bldgGrad)"/>
-      <rect x="294" y="44"  width="10"  height="16"  fill="url(#bldgGrad)"/>
-      <rect x="296" y="30"  width="6"   height="16"  fill="rgba(255,255,255,0.25)"/>
-
-      <rect x="308" y="122" width="36"  height="158" fill="url(#bldgGrad)"/>
-      <rect x="340" y="100" width="22"  height="180" fill="url(#bldgGrad)"/>
-      <rect x="358" y="148" width="32"  height="132" fill="url(#bldgGrad)"/>
-
-      <!-- Window lights overlay -->
-      <rect x="0" y="0" width="390" height="280" fill="url(#windows)" opacity="0.6"/>
-
-      <!-- Ground -->
-      <rect x="0" y="265" width="390" height="15" fill="#080f1c"/>
-    </svg>
+    <img id="bg-photo" src="skyline-portrait.jpeg" alt="Chicago skyline" />
   </div>
 
   <!-- AR scan grid -->
@@ -746,8 +643,13 @@
     <div class="scan-circle"></div>
   </div>
 
-  <!-- AR layer with building pins -->
+  <!-- AR layer: SVG lines + pin labels + pin dots -->
+  <svg id="ar-lines" style="position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible;"></svg>
   <div id="ar-layer"></div>
+
+  <!-- Coordinate HUD -->
+  <div id="coord-hud" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:100;background:rgba(0,0,0,0.75);color:#5b8fff;font:700 13px/1 monospace;padding:7px 14px;border-radius:8px;border:1px solid rgba(91,143,255,0.4);pointer-events:none;white-space:nowrap;">x: — &nbsp; y: —</div>
+  <button id="coord-toggle" onclick="toggleCoords()" style="position:fixed;bottom:90px;right:16px;z-index:100;background:rgba(0,0,0,0.6);color:rgba(91,143,255,0.8);border:1px solid rgba(91,143,255,0.35);border-radius:8px;padding:6px 10px;font:600 11px monospace;cursor:pointer;letter-spacing:0.05em;">XY</button>
 
   <!-- Toast -->
   <div id="ar-toast">Tap a pin to explore</div>
@@ -758,7 +660,7 @@
       <div class="app-logo">Sky<span>line</span></div>
       <div class="location-badge">
         <div class="location-dot"></div>
-        Midtown, NYC
+        Chicago, IL
       </div>
     </div>
     <div class="status-right">
@@ -884,97 +786,110 @@
   <script>
     const BUILDINGS = [
       {
-        id: 'empire',
-        name: 'Empire State Building',
-        address: '350 5th Ave, New York',
-        height: '443 m',
-        floors: '102',
-        year: '1931',
-        distance: '0.4 km',
-        direction: 'SE',
-        tags: ['Art Deco', 'Observatory', 'Landmark'],
-        description: 'An iconic Art Deco skyscraper in Midtown Manhattan offering panoramic views from its observation decks on floors 86 and 102.',
-        pinX: 52,
-        pinY: 52,
-      },
-      {
-        id: 'chrysler',
-        name: 'Chrysler Building',
-        address: '405 Lexington Ave',
-        height: '319 m',
-        floors: '77',
-        year: '1930',
-        distance: '0.6 km',
-        direction: 'NE',
-        tags: ['Art Deco', 'Steel Spire'],
-        description: 'A celebrated Art Deco skyscraper known for its distinctive stainless steel eagle gargoyles and terraced crown.',
-        pinX: 72,
-        pinY: 44,
-      },
-      {
-        id: 'onewt',
-        name: 'One World Trade',
-        address: 'Lower Manhattan',
-        height: '541 m',
-        floors: '104',
-        year: '2014',
-        distance: '4.2 km',
-        direction: 'S',
-        tags: ['Tallest in USA', 'Memorial', 'Office'],
-        description: 'The tallest building in the Western Hemisphere, built on the site of the original World Trade Center in Lower Manhattan.',
-        pinX: 22,
-        pinY: 60,
-      },
-      {
-        id: 'rockefeller',
-        name: '30 Rockefeller Plaza',
-        address: '30 Rockefeller Plaza',
-        height: '260 m',
-        floors: '70',
-        year: '1933',
+        id: 'aon',
+        name: 'Aon Center',
+        address: '200 E Randolph St',
+        height: '346 m / 1,136 ft',
+        floors: '83',
+        year: '1973',
         distance: '0.3 km',
-        direction: 'NW',
-        tags: ['Art Deco', 'Top of the Rock'],
-        description: 'The centerpiece of Rockefeller Center, featuring the famous Top of the Rock observation deck with views across Central Park.',
-        pinX: 34,
-        pinY: 38,
+        direction: 'W',
+        tags: ['Office', 'Neo-Gothic', 'Chicago 4th Tallest'],
+        description: 'Originally the Standard Oil Building, its white Carrara marble cladding had to be entirely replaced with Mount Airy granite in the 1990s — one of the most expensive facade replacements in history.',
+        dotX: 21.4, dotY: 38.8, labelX: 12, labelY: 32,
       },
       {
-        id: '432park',
-        name: '432 Park Avenue',
-        address: '432 Park Ave',
-        height: '426 m',
-        floors: '96',
-        year: '2015',
-        distance: '0.8 km',
-        direction: 'N',
-        tags: ['Supertall', 'Luxury Residential'],
-        description: 'A super-slender residential supertall skyscraper, one of the tallest in the Western Hemisphere by structural height.',
-        pinX: 78,
-        pinY: 30,
+        id: '340park',
+        name: '340 on the Park',
+        address: '340 E Randolph St',
+        height: '205 m / 672 ft',
+        floors: '62',
+        year: '2007',
+        distance: '0.5 km',
+        direction: 'W',
+        tags: ['Residential', 'Millennium Park Views', 'Luxury'],
+        description: 'A slender residential tower overlooking Millennium Park and Lake Michigan. One of the tallest all-residential buildings in Chicago at the time of its completion.',
+        dotX: 35, dotY: 40, labelX: 26, labelY: 22,
+      },
+      {
+        id: 'stregis',
+        name: 'St. Regis Chicago',
+        address: '363 E Wacker Dr',
+        height: '363 m / 1,191 ft',
+        floors: '101',
+        year: '2021',
+        distance: '0.2 km',
+        direction: 'W',
+        tags: ['Hotel', 'Residential', 'Jeanne Gang', 'Chicago 3rd Tallest'],
+        description: 'Formerly Vista Tower, designed by Jeanne Gang of Studio Gang Architects. Its undulating glass facade shifts color with the sky and light. Chicago\'s third tallest building and one of the most distinctive supertalls in the world.',
+        dotX: 47, dotY: 20, labelX: 47, labelY: 8,
+      },
+      {
+        id: 'northharbor',
+        name: 'North Harbor Tower',
+        address: '175 N Harbor Dr',
+        height: '169 m / 556 ft',
+        floors: '55',
+        year: '1988',
+        distance: '0.4 km',
+        direction: 'NW',
+        tags: ['Residential', 'Harbor Views'],
+        description: 'A 55-story residential tower on the inner harbor, offering views across Monroe Harbor and Lake Michigan toward the Illinois dunes on clear days.',
+        dotX: 72, dotY: 42, labelX: 72, labelY: 28,
+      },
+      {
+        id: 'harborpoint',
+        name: 'Harbor Point',
+        address: '155 N Harbor Dr',
+        height: '~165 m / ~540 ft',
+        floors: '54',
+        year: '1975',
+        distance: '0.5 km',
+        direction: 'NW',
+        tags: ['Residential', 'Harbor Views', 'Brutalist'],
+        description: 'A 54-story residential tower completed in 1975 at the tip of the Streeterville peninsula, with panoramic exposure to the lake on three sides.',
+        dotX: 84, dotY: 43, labelX: 84, labelY: 29,
       },
     ];
 
     let activeBuilding = null;
 
     function buildPins() {
-      const layer = document.getElementById('ar-layer');
+      const layer  = document.getElementById('ar-layer');
+      const svgEl  = document.getElementById('ar-lines');
+
       BUILDINGS.forEach(b => {
-        const pin = document.createElement('div');
-        pin.className = 'ar-pin';
-        pin.id = 'pin-' + b.id;
-        pin.style.left = b.pinX + '%';
-        pin.style.top  = b.pinY + '%';
-        pin.innerHTML = `
-          <div class="ar-pin-label">
-            <div class="ar-pin-name">${b.name.split(' ')[0]} ${b.name.split(' ')[1] || ''}</div>
-            <div class="ar-pin-height">${b.height}</div>
-          </div>
-          <div class="ar-pin-stem"></div>
-          <div class="ar-pin-dot"></div>
+        // Label — bottom-center anchored at (labelX%, labelY%)
+        const label = document.createElement('div');
+        label.className = 'ar-pin-label';
+        label.id = 'label-' + b.id;
+        label.style.cssText = `position:absolute;left:${b.labelX}%;top:${b.labelY}%;transform:translate(-50%,-100%);cursor:pointer;`;
+        label.innerHTML = `
+          <div class="ar-pin-name">${b.name}</div>
+          <div class="ar-pin-height">${b.height.split(' / ')[0]}</div>
         `;
-        pin.addEventListener('click', () => openCard(b));
-        layer.appendChild(pin);
+        label.addEventListener('click', () => openCard(b));
+        layer.appendChild(label);
+
+        // Dot — center anchored at (dotX%, dotY%)
+        const dot = document.createElement('div');
+        dot.className = 'ar-pin-dot';
+        dot.id = 'dot-' + b.id;
+        dot.style.cssText = `position:absolute;left:${b.dotX}%;top:${b.dotY}%;transform:translate(-50%,-50%);cursor:pointer;`;
+        dot.addEventListener('click', () => openCard(b));
+        layer.appendChild(dot);
+
+        // SVG connector line from label bottom-center to dot center
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.id = 'line-' + b.id;
+        line.setAttribute('x1', b.labelX + '%');
+        line.setAttribute('y1', b.labelY + '%');
+        line.setAttribute('x2', b.dotX   + '%');
+        line.setAttribute('y2', b.dotY   + '%');
+        line.setAttribute('stroke', 'rgba(91,143,255,0.55)');
+        line.setAttribute('stroke-width', '1');
+        line.setAttribute('stroke-dasharray', '3 3');
+        svgEl.appendChild(line);
       });
     }
 
@@ -1011,11 +926,38 @@
 
     function updatePinsForRange(km) {
       BUILDINGS.forEach(b => {
-        const dist = parseFloat(b.distance);
-        const pin = document.getElementById('pin-' + b.id);
-        if (pin) pin.style.opacity = dist <= km ? '1' : '0.2';
+        const vis = parseFloat(b.distance) <= km ? '1' : '0.2';
+        const label = document.getElementById('label-' + b.id);
+        const dot   = document.getElementById('dot-'   + b.id);
+        const line  = document.getElementById('line-'  + b.id);
+        if (label) label.style.opacity = vis;
+        if (dot)   dot.style.opacity   = vis;
+        if (line)  line.style.opacity  = vis;
       });
     }
+
+    let coordsOn = false;
+    function toggleCoords() {
+      coordsOn = !coordsOn;
+      const hud = document.getElementById('coord-hud');
+      const btn = document.getElementById('coord-toggle');
+      hud.style.display = coordsOn ? 'block' : 'none';
+      btn.style.color   = coordsOn ? '#5b8fff' : 'rgba(91,143,255,0.8)';
+      btn.style.background = coordsOn ? 'rgba(91,143,255,0.2)' : 'rgba(0,0,0,0.6)';
+    }
+
+    function updateCoords(clientX, clientY) {
+      if (!coordsOn) return;
+      const x = (clientX / window.innerWidth  * 100).toFixed(1);
+      const y = (clientY / window.innerHeight * 100).toFixed(1);
+      document.getElementById('coord-hud').textContent = `x: ${x}   y: ${y}`;
+    }
+
+    document.addEventListener('mousemove', e => updateCoords(e.clientX, e.clientY));
+    document.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      updateCoords(t.clientX, t.clientY);
+    }, { passive: true });
 
     function setNav(el) {
       document.querySelectorAll('.nav-item').forEach(n => {
